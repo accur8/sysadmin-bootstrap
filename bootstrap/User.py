@@ -76,7 +76,7 @@ class User(object):
             self.execShell("""find /etc -name '*.backup-before-nix' | xargs rm -rf""")
             installScript = f"{self.home}/temp-nix-install.sh"
             self.execShell(f"curl -L https://nixos.org/nix/install | sudo -u {self.name} tee {installScript} > /dev/null")
-            self.execAsUser(["sh", installScript, "--daemon"])
+            self.execShell(f"nohup sh {installScript} --daemon")
             self.deleteFile(installScript)
 
     def homeManagerSwitch(self):

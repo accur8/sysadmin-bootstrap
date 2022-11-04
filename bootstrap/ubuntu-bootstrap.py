@@ -18,7 +18,7 @@ class Config:
     def __init__(self, **kwargs):
         self.hostname: str = kwargs["hostname"]
         self.zerotierNetworkId: str = kwargs["zerotierNetworkId"]
-        self.repositores = [AptRepo(repo) for repo in kwargs["repositores"]]
+        self.repositores = [AptRepo(**repo) for repo in kwargs["repositores"]]
         self.standalonePackages: list[str] = kwargs["standalonePackages"]
         self.rsnapshot: list[str] = kwargs["rsnapshot"]
 

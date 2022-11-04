@@ -1,0 +1,9 @@
+
+
+
+* wire in pgbackrest and rsnapshots with this
+
+* getting nix on root
+
+* trim /etc/environment
+

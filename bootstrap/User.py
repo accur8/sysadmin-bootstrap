@@ -80,6 +80,7 @@ class User(object):
             deleteFile(installScript)
 
     def homeManagerSwitch(self):
+        self.installNix()
         homeManagerDir = gitRootDir / "home-manager"
         self.execAsUser(f"{homeManagerDir}/switch.sh", cwd=homeManagerDir)
 

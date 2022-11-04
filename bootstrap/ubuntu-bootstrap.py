@@ -180,7 +180,6 @@ configureSupervisor()
 
 
 devUser = createSudoUser("dev")
-
 devUser.homeManagerSwitch()
 
 print("successfully completed")

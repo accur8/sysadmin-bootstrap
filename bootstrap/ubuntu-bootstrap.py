@@ -9,11 +9,33 @@ import stat
 import pwd
 from pathlib import Path
 from User import User
+from typing_extensions import TypedDict
 
 scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
 
-config = {
+
+Repository = TypedDict(
+        "Repository",
+        {
+            "name": str,
+            "file": str,
+            "source": str,
+        }
+    )
+
+Config = TypedDict(
+        "Config", 
+        {
+            "hostname": str,
+            "zerotierNetworkId": str,
+            "repositores": list[Repository],
+            "standalonePackages": list[str],
+            "rsnapshot": list[str],
+        }
+    )
+
+config: Config = {
     "hostname": "orchid",
     "zerotierNetworkId": "8056c2e21cb31b0c",
     "repositores": [
@@ -43,7 +65,7 @@ def setupRepos() -> None:
         file = repo["file"]
         source = repo["source"]
         if not os.path.exists(file):
-            exec(["apt-add-repository", "-y", source])
+            root.execAsUser(["apt-add-repository", "-y", source])
             aptUpdateNeeded = True
         else:
             print(f"repo {name} already setup")    
@@ -53,7 +75,7 @@ def setHostname(hostname: str) -> None:
     import socket
     existingHostname = socket.gethostname()
     if existingHostname != hostname:
-        exec(["hostnamectl", "set-hostname", hostname])
+        root.execAsUser(["hostnamectl", "set-hostname", hostname])
     else:
         print(f"hostname already set to {hostname}")
 
@@ -61,17 +83,17 @@ def setHostname(hostname: str) -> None:
 def aptUpdate() -> None:
     global aptUpdateNeeded
     if aptUpdateNeeded:
-        exec(["apt", "update"])
+        root.execAsUser(["apt", "update"])
         aptUpdateNeeded = False
 
 
 def installPackages(*packages: str) -> None:
     if not arePackagesInstalled(*packages):
-        packages = list(packages)
-        print("installing packages -- " + str(packages))
-        exec(["apt", "install", "-y"] + packages)
+        packagesL = list(packages)
+        print("installing packages -- " + str(packagesL))
+        root.execAsUser(["apt", "install", "-y"] + packagesL)
     else:
-        print("packages already installed -- " + str(packages))
+        print("packages already installed -- " + str(packagesL))
 
 
 
@@ -79,16 +101,16 @@ def setupCaddyRepo() -> None:
     global aptUpdateNeeded
     installPackages("debian-keyring", "debian-archive-keyring", "apt-transport-https")
     if not os.path.exists("/usr/share/keyrings/caddy-stable-archive-keyring.gpg"):
-        execShell("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor > /usr/share/keyrings/caddy-stable-archive-keyring.gpg")
+        root.execShell("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor > /usr/share/keyrings/caddy-stable-archive-keyring.gpg")
     if not os.path.exists("/etc/apt/sources.list.d/caddy-stable.list"):        
-        execShell("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list")
+        root.execShell("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list")
         aptUpdateNeeded = True
 
 
 def setupZerotier() -> None:
     if not os.path.exists("/usr/sbin/zerotier-cli"):
-        execShell("curl -s https://install.zerotier.com | sudo bash")
-        exec(["zerotier-cli", "join", config["zerotierNetworkId"]])
+        root.execShell("curl -s https://install.zerotier.com | sudo bash")
+        root.execAsUser(["zerotier-cli", "join", config["zerotierNetworkId"]])
     else:
         print("zerotier already installed")    
 
@@ -103,14 +125,14 @@ def configureCaddy() -> None:
 
 def configureSupervisor() -> None:
     if not root.pathExists("/etc/supervisor/conf.d/apps.conf"):
-        root.copy(scriptDir / "supervisor-apps.conf", "/etc/supervisor/conf.d/apps.conf")
+        root.copyFile(scriptDir / "supervisor-apps.conf", "/etc/supervisor/conf.d/apps.conf")
         root.makeDirectories("/etc/supervisor/apps/")
 
 
 
 def createSudoUser(username: str) -> User:
     if not userExists(username):
-        exec(["adduser", "--disabled-password", "--gecos", "", username])
+        root.execAsUser(["adduser", "--disabled-password", "--gecos", "", username])
     root.writeFile(f"/etc/sudoers.d/{username}", f"{username} ALL=(ALL) NOPASSWD: ALL")
     return User(username)
 

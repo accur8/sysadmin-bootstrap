@@ -4,6 +4,9 @@ import os
 import pwd
 import subprocess
 from pathlib import Path
+import sys
+import stat
+from typing import Union
 
 scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
@@ -51,7 +54,10 @@ class User(object):
         st = os.stat(scriptFile)
         os.chmod(scriptFile, st.st_mode | stat.S_IEXEC)
         self.execAsUser(scriptFile)
-        deleteFile(scriptFile)
+        self.deleteFile(scriptFile)
+
+    def deleteFile(self, filename):
+        self.execShell(f"rm {filename}")
 
     def writeFile(self, filename: str, contents: str):
         parent = os.path.dirname(filename)
@@ -63,7 +69,7 @@ class User(object):
 
     def makeDirectories(self, directory: str):
         if not os.path.exists(directory):
-            self.execAsUser("mkdir", "-p", directory)
+            self.execAsUser(["mkdir", "-p", directory])
 
     def installNix(self):
         if not os.path.exists("/nix"):
@@ -85,7 +91,7 @@ class User(object):
 
         subprocess.check_output(command, shell=True, cwd=cwd)
 
-    def copyFile(self, fromFile: str, toFile: str) -> None:
+    def copyFile(self, fromFile: Union[str, Path], toFile: Union[str, Path]) -> None:
         import shutil
         shutil.copyfile(fromFile, toFile)
         os.chown(toFile, self.pw_uid, self.pw_gid)

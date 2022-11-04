@@ -14,8 +14,6 @@ scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
 
 
-installPackages = subprocess.check_output("apt list").lines
-
 class Config:
     def __init__(self, **kwargs):
         self.hostname: str = kwargs["hostname"]

@@ -16,11 +16,11 @@ gitRootDir = Path(os.path.dirname(scriptDir))
 
 class Config:
     def __init__(self, **kwargs):
-        self.hostname: str = kwargs.hostname
-        self.zerotierNetworkId: str = kwargs.zerotierNetworkId
-        self.repositores = [Repo(repo) for repo in kwargs.repositores]
-        self.standalonePackages: list[str] = kwargs.standalonePackages
-        self.rsnapshot: list[str] = kwargs.rsnapshot
+        self.hostname: str = kwargs["hostname"]
+        self.zerotierNetworkId: str = kwargs["zerotierNetworkId"]
+        self.repositores = [Repo(repo) for repo in kwargs["repositores"]
+        self.standalonePackages: list[str] = kwargs["standalonePackages"]
+        self.rsnapshot: list[str] = kwargs["rsnapshot"]
 
 class Repository:
     def __init__(self, **kwargs):

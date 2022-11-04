@@ -93,7 +93,7 @@ def installPackages(*packages: str) -> None:
         print("installing packages -- " + str(packagesL))
         root.execAsUser(["apt", "install", "-y"] + packagesL)
     else:
-        print("packages already installed -- " + str(packagesL))
+        print("packages already installed -- " + str(list(packages)))
 
 
 

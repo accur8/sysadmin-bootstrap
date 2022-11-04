@@ -93,5 +93,7 @@ class User(object):
 
     def copyFile(self, fromFile: Union[str, Path], toFile: Union[str, Path]) -> None:
         import shutil
+        toParent = os.path.dirname(toFile)
+        self.makeDirectories(toParent)
         shutil.copyfile(fromFile, toFile)
         os.chown(toFile, self.pw_uid, self.pw_gid)

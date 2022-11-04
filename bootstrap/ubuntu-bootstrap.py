@@ -9,66 +9,56 @@ import stat
 import pwd
 from pathlib import Path
 from User import User
-from typing_extensions import TypedDict
 
 scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
 
 
-Repository = TypedDict(
-        "Repository",
-        {
-            "name": str,
-            "file": str,
-            "source": str,
-        }
-    )
+class Config:
+    def __init__(self, **kwargs):
+        self.hostname: str = kwargs.hostname
+        self.zerotierNetworkId: str = kwargs.zerotierNetworkId
+        self.repositores = [Repo(repo) for repo in kwargs.repositores]
+        self.standalonePackages: list[str] = kwargs.standalonePackages
+        self.rsnapshot: list[str] = kwargs.rsnapshot
 
-Config = TypedDict(
-        "Config", 
-        {
-            "hostname": str,
-            "zerotierNetworkId": str,
-            "repositores": list[Repository],
-            "standalonePackages": list[str],
-            "rsnapshot": list[str],
-        }
-    )
+class Repository:
+    def __init__(self, **kwargs):
+        self.name: str = kwargs.name
+        self.file: str = kwargs.file
+        self.source = kwargs.source
 
-config: Config = {
-    "hostname": "orchid",
-    "zerotierNetworkId": "8056c2e21cb31b0c",
-    "repositores": [
+config = Config(
+    hostname = "orchid",
+    zerotierNetworkId = "8056c2e21cb31b0c",
+    repositores = [
         {
             "name": "fish shell",
             "file": "/etc/apt/sources.list.d/fish-shell-ubuntu-release-3-jammy.list",
             "source": "ppa:fish-shell/release-3"
         }
     ],
-    "standalonePackages": [
+    standalonePackages = [
         "caddy",
         "supervisor",
     ],
-    "rsnapshot": [
+    rsnapshot = [
         "/etc/",
         "/home/",
         "/root/",
     ],
-}
+)
 
 
 aptUpdateNeeded = False
 
 def setupRepos() -> None:
-    for repo in config["repositores"]:
-        name = repo["name"]
-        file = repo["file"]
-        source = repo["source"]
-        if not os.path.exists(file):
-            root.execAsUser(["apt-add-repository", "-y", source])
+    for repo in config.repositores:
+        if not os.path.exists(repo.file):
+            root.execAsUser(["apt-add-repository", "-y", repo.source])
             aptUpdateNeeded = True
         else:
-            print(f"repo {name} already setup")    
+            print(f"repo {repo.name} already setup")    
 
 
 def setHostname(hostname: str) -> None:
@@ -110,7 +100,7 @@ def setupCaddyRepo() -> None:
 def setupZerotier() -> None:
     if not os.path.exists("/usr/sbin/zerotier-cli"):
         root.execShell("curl -s https://install.zerotier.com | sudo bash")
-        root.execAsUser(["zerotier-cli", "join", config["zerotierNetworkId"]])
+        root.execAsUser(["zerotier-cli", "join", config.zerotierNetworkId])
     else:
         print("zerotier already installed")    
 
@@ -174,14 +164,14 @@ def installEtcKeeper() -> None:
 root = User("root")
 
 installEtcKeeper()
-setHostname(config["hostname"])
+setHostname(config.hostname)
 
 setupRepos()
 setupCaddyRepo()
 
 aptUpdate()
 
-installPackages(*config["standalonePackages"])
+installPackages(*config.standalonePackages)
 
 setupZerotier()
 

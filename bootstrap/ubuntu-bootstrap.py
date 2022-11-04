@@ -24,9 +24,9 @@ class Config:
 
 class AptRepo:
     def __init__(self, **kwargs):
-        self.name: str = kwargs.name
-        self.file: str = kwargs.file
-        self.source = kwargs.source
+        self.name: str = kwargs["name"]
+        self.file: str = kwargs["file"]
+        self.source = kwargs["source"]
 
 config = Config(
     hostname = "orchid",

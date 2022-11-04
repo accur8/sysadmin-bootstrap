@@ -75,7 +75,7 @@ class User(object):
         if not os.path.exists("/nix"):
             self.execShell("""find /etc -name '*.backup-before-nix' | xargs rm -rf""")
             installScript = f"{self.home}/temp-nix-install.sh"
-            self.execShell(f"curl -L https://nixos.org/nix/install | sudo -u {user.name} tee {installScript} > /dev/null")
+            self.execShell(f"curl -L https://nixos.org/nix/install | sudo -u {self.name} tee {installScript} > /dev/null")
             user.execAsUser("sh", installScript, "--daemon")
             self.deleteFile(installScript)
 

@@ -3,6 +3,10 @@
 import os
 import pwd
 import subprocess
+from pathlib import Path
+
+scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
+gitRootDir = Path(os.path.dirname(scriptDir))
 
 
 class User(object):
@@ -21,10 +25,11 @@ class User(object):
         self.writeFile(absoluteFilename, contents)
         return absoluteFilename
 
-    def execAsUser(self, args: (str | list[str]), **kwargs) -> None:
-        cwd = kwargs.cwd
+    def execAsUser(self, args: (str | list[str]), cwd=None) -> None:
+
         if cwd is None:
             cwd = self.home
+
         if isinstance(args, str):
             args = [args]
 
@@ -69,7 +74,7 @@ class User(object):
             deleteFile(installScript)
 
     def homeManagerSwitch(self):
-        homeManagerDir = f"{scriptDir}/home-manager"
+        homeManagerDir = gitRootDir / "home-manager"
         self.execAsUser(f"{homeManagerDir}/switch.sh", cwd=homeManagerDir)
 
     def execShell(self, command, cwd=None):
@@ -80,3 +85,7 @@ class User(object):
 
         subprocess.check_output(command, shell=True, cwd=cwd)
 
+    def copyFile(self, fromFile: str, toFile: str) -> None:
+        import shutil
+        shutil.copyfile(fromFile, toFile)
+        os.chown(toFile, self.pw_uid, self.pw_gid)

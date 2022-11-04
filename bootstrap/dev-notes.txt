@@ -11,3 +11,6 @@
 	* /usr/games
 	* /usr/local/games
 
+
+* set proper perms on /etc/sudoers.d/ files
+

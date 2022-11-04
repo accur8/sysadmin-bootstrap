@@ -94,7 +94,7 @@ def setupZerotier() -> None:
 
 
 def configureCaddy() -> None:
-    if not exists("/etc/caddy/apps-setup-complete"):
+    if not root.pathExists("/etc/caddy/apps-setup-complete"):
         root.copyFile(scriptDir / "Caddyfile", "/etc/caddy/Caddyfile")
         root.writeFile("/etc/caddy/apps-setup-complete", "do nothing / noop marker file to show that apps have been setup")
         root.makeDirectories("/etc/caddy/apps/")
@@ -102,7 +102,7 @@ def configureCaddy() -> None:
 
 
 def configureSupervisor() -> None:
-    if not exists("/etc/supervisor/conf.d/apps.conf"):
+    if not root.pathExists("/etc/supervisor/conf.d/apps.conf"):
         root.copy(scriptDir / "supervisor-apps.conf", "/etc/supervisor/conf.d/apps.conf")
         root.makeDirectories("/etc/supervisor/apps/")
 
@@ -112,7 +112,7 @@ def createSudoUser(username: str) -> User:
     if not userExists(username):
         exec(["adduser", "--disabled-password", "--gecos", "", username])
     root.writeFile(f"/etc/sudoers.d/{username}", f"{username} ALL=(ALL) NOPASSWD: ALL")
-
+    return User(username)
 
 def userExists(username: str) -> bool:
     import pwd

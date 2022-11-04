@@ -14,6 +14,8 @@ scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
 
 
+installPackages = subprocess.check_output("apt list").lines
+
 class Config:
     def __init__(self, **kwargs):
         self.hostname: str = kwargs["hostname"]
@@ -144,13 +146,12 @@ def deleteFile(file: Path) -> None:
 
 
 def arePackagesInstalled(*packages: str) -> bool:
-    return False
-    # import apt
-    # cache = apt.Cache()
-    # def isPackageInstalled(package): 
-    #     return cache.get(package) is not None
-    # return all(isPackageInstalled(p) for p in packages)
-    
+    import apt
+    cache = apt.Cache()
+    def isPackageInstalled(package): 
+        pkg = cache.get(package)
+        return pkg is not None and pkg.installed is not None
+    return all(isPackageInstalled(p) for p in packages)
 
 
 def installEtcKeeper() -> None:

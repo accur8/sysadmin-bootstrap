@@ -6,4 +6,8 @@
 * getting nix on root
 
 * trim /etc/environment
+	* /sbin -> same as /usr/sbin
+	* /bin  -> does not exist
+	* /usr/games
+	* /usr/local/games
 

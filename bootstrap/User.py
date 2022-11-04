@@ -73,11 +73,11 @@ class User(object):
 
     def installNix(self):
         if not os.path.exists("/nix"):
-            execShell("""find /etc -name '*.backup-before-nix' | xargs rm -rf""")
+            self.execShell("""find /etc -name '*.backup-before-nix' | xargs rm -rf""")
             installScript = f"{user.home}/temp-nix-install.sh"
-            execShell(f"curl -L https://nixos.org/nix/install | sudo -u {user.name} tee {installScript} > /dev/null")
+            self.execShell(f"curl -L https://nixos.org/nix/install | sudo -u {user.name} tee {installScript} > /dev/null")
             user.execAsUser("sh", installScript, "--daemon")
-            deleteFile(installScript)
+            self.deleteFile(installScript)
 
     def homeManagerSwitch(self):
         self.installNix()

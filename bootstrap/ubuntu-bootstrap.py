@@ -144,11 +144,12 @@ def deleteFile(file: Path) -> None:
 
 
 def arePackagesInstalled(*packages: str) -> bool:
-    import apt
-    cache = apt.Cache()
-    def isPackageInstalled(package): 
-        return cache.get(package) is not None
-    return all(isPackageInstalled(p) for p in packages)
+    return False
+    # import apt
+    # cache = apt.Cache()
+    # def isPackageInstalled(package): 
+    #     return cache.get(package) is not None
+    # return all(isPackageInstalled(p) for p in packages)
     
 
 

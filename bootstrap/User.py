@@ -14,14 +14,15 @@ gitRootDir = Path(os.path.dirname(scriptDir))
 
 class User(object):
 
-    def __init__(self, username: str):
-        self.username = username
-        self.login = username
-        self.name = username
-        self.pwname = pwd.getpwnam(username)
-        self.home = os.path.expanduser( f"~{username}")
+    def __init__(self, login: str, authorizedKeys: list[str] = []):
+        self.username = login
+        self.login = login
+        self.name = login
+        self.pwname = pwd.getpwnam(login)
+        self.home = os.path.expanduser( f"~{login}")
         self.pw_uid = self.pwname.pw_uid
         self.pw_gid = self.pwname.pw_gid
+        self.authorizedKeys = authorizedKeys
 
     def writeInHome(self, filename: str, contents: str) -> str:
         absoluteFilename = os.path.join(self.home, filename)
@@ -73,7 +74,7 @@ class User(object):
 
     def installNix(self):
         if not os.path.exists("/nix"):
-            self.execShell("""find /etc -name '*.backup-before-nix' | xargs rm -rf""")
+            # self.execShell("""find /etc -name '*.backup-before-nix' | xargs rm -rf""")
             installScript = f"{self.home}/temp-nix-install.sh"
             self.execShell(f"curl -L https://nixos.org/nix/install | sudo -u {self.name} tee {installScript} > /dev/null")
             # nohup because we have to run the install script without a tty so it doesn't prompt us
@@ -99,3 +100,14 @@ class User(object):
         self.makeDirectories(toParent)
         shutil.copyfile(fromFile, toFile)
         os.chown(toFile, self.pw_uid, self.pw_gid)
+
+
+    def generateAuthorizedKeys2(self) -> None:
+        authorizedKeys2Contents = "\n".join([key for key in self.authorizedKeys])
+        filename = self.writeInHome(".ssh/authorized_keys2", authorizedKeys2Contents)
+        os.chmod(filename, stat.S_IRUSR | stat.S_IWUSR)
+        sshDir = os.path.dirname(filename)
+        os.chmod(sshDir, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+
+
+

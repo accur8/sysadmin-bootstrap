@@ -14,6 +14,11 @@ scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
 
 
+class UserConfig:
+    def __init__(self, **kwargs):
+        self.login: str = kwargs["login"]
+        self.authorizedKeys: list[str] = kwargs["authorizedKeys"]
+
 class Config:
     def __init__(self, **kwargs):
         self.hostname: str = kwargs["hostname"]
@@ -21,6 +26,7 @@ class Config:
         self.repositores = [AptRepo(**repo) for repo in kwargs["repositores"]]
         self.standalonePackages: list[str] = kwargs["standalonePackages"]
         self.rsnapshot: list[str] = kwargs["rsnapshot"]
+        self.users: list[UserConfig] = kwargs["users"]
 
 class AptRepo:
     def __init__(self, **kwargs):
@@ -32,11 +38,11 @@ config = Config(
     hostname = "orchid",
     zerotierNetworkId = "8056c2e21cb31b0c",
     repositores = [
-        {
-            "name": "fish shell",
-            "file": "/etc/apt/sources.list.d/fish-shell-ubuntu-release-3-jammy.list",
-            "source": "ppa:fish-shell/release-3"
-        }
+        # {
+        #     "name": "fish shell",
+        #     "file": "/etc/apt/sources.list.d/fish-shell-ubuntu-release-3-jammy.list",
+        #     "source": "ppa:fish-shell/release-3"
+        # }
     ],
     standalonePackages = [
         "caddy",
@@ -47,6 +53,15 @@ config = Config(
         "/home/",
         "/root/",
     ],
+    users = [
+        UserConfig(
+            login = "dev",
+            authorizedKeys = [
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBjO1Y0Q3q8TTnupBWMEHp/G0yBZi0s6TvGvXepXFVt glen@fullfillment"
+            ]
+        )
+    ],
+
 )
 
 
@@ -120,11 +135,12 @@ def configureSupervisor() -> None:
 
 
 
-def createSudoUser(username: str) -> User:
+def createSudoUser(userConfig: UserConfig) -> User:
+    username = userConfig.login
     if not userExists(username):
         root.execAsUser(["adduser", "--disabled-password", "--gecos", "", username])
     root.writeFile(f"/etc/sudoers.d/{username}", f"{username} ALL=(ALL) NOPASSWD: ALL")
-    return User(username)
+    return User(username, userConfig.authorizedKeys)
 
 def userExists(username: str) -> bool:
     import pwd
@@ -160,6 +176,12 @@ def installEtcKeeper() -> None:
         installPackages("etckeeper")
 
 
+def createAndOrSetupUser(userConfig: UserConfig) -> User:
+    print(f"createAndOrSetupUser({userConfig.login})")
+    user = createSudoUser(userConfig)
+    user.homeManagerSwitch()
+    user.generateAuthorizedKeys2()
+    return user
 
 root = User("root")
 
@@ -179,8 +201,8 @@ configureCaddy()
 configureSupervisor()
 
 
-devUser = createSudoUser("dev")
-devUser.homeManagerSwitch()
+
+[createAndOrSetupUser(user) for user in config.users]
 
 print("successfully completed")
 

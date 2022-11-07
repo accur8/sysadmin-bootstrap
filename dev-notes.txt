@@ -1,0 +1,8 @@
+
+
+
+* add rsnapshot info to authorized keys
+	* see this https://gist.github.com/mufus/51cd2330ad86b4dc18f2
+
+
+

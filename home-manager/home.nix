@@ -1,5 +1,16 @@
-{ pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+
+  system = builtins.currentSystem;
+
+  sources = import ./nix/sources.nix;
+
+  nixpkgs = import sources.nixpkgs-unstable { inherit system; };
+
+  a8-scripts = import sources.a8-scripts { inherit system nixpkgs; };
+
+in
 {
 
   # The home-manager manual is at:
@@ -45,6 +56,7 @@
   };
 
   home.packages = [
+    a8-scripts.a8-scripts
     pkgs.htop
     pkgs.jdk11
     pkgs.fortune

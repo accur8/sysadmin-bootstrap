@@ -57,7 +57,8 @@ config = Config(
         UserConfig(
             login = "dev",
             authorizedKeys = [
-                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBjO1Y0Q3q8TTnupBWMEHp/G0yBZi0s6TvGvXepXFVt glen@fullfillment"
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBjO1Y0Q3q8TTnupBWMEHp/G0yBZi0s6TvGvXepXFVt glen@fullfillment",
+                "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3+BOkj22pM1TjJJx3K0KpcARuXBMz1JGCsFoyS+bhJmNA6TK7HFSQ7yDdes/dEhZP7fFRrMcji/lzNmSNg3p8kDyyFyCmCYjti7yaMG/OFhen6w8FzueI4Bm79AudkR3s2Z+fmgC2MzttXWvUt5cYqmmExitZ1Uy8SbU9Ehal9vJScOmurhVSshhfPgQIqc8duRy91Vdj9eW9vt39wmb3E2pOWUJTsm1VfciNXU10A+rd4ChJg4Kvc9xvj9M5PS6mUYbv7AgmrLvaG3i1yP4LQbRdzHL39JRapc5dHjDxWaU49PJUt5nj4EBVE3tIej/D/gFYaXWbAKjT56HkS/1Z raph@raph",
             ]
         )
     ],
@@ -184,14 +185,37 @@ def createAndOrSetupUser(userConfig: UserConfig) -> User:
     return user
 
 
-def fixAppsFolderPerms(userName):
+def fixAppsFolderPerms(devUser: User) -> None:
     """
     fixes perms for the apps folders
     needs to happen after the user is created
     """
-    devUser = User(userName)
     os.chown("/etc/caddy/apps", devUser.pw_uid, devUser.pw_gid)
     os.chown("/etc/supervisor/apps", devUser.pw_uid, devUser.pw_gid)
+
+
+def setupJavaSymlinks(devUser: User) -> None:
+    javaExecPath = devUser.homePath(".nix-profile/bin/java").resolve()
+    if not javaExecPath.exists():
+        logWarning(f"no java exec found @ {javaExecPath}")
+    else:
+        def setupSymlink(path: Path) -> None:
+            if not path.exists():
+                path.link_to(javaExecPath)
+
+        setupSymlink(Path("/usr/bin/java"))
+        setupSymlink(Path("/usr/bin/java11"))
+
+        devUser.makeDirectories(devUser.homePath("apps/bin"))
+        appsBinJava = devUser.homePath("apps/bin/java11")
+        if not appsBinJava.exists():
+            setupSymlink(appsBinJava)
+            devUser.chownPath(appsBinJava)
+
+
+def logWarning(msg: str) -> None:
+    print("WARNING !! " + msg)
+
 
 root = User("root")
 
@@ -212,9 +236,13 @@ configureSupervisor()
 
 
 
-[createAndOrSetupUser(user) for user in config.users]
+users = [createAndOrSetupUser(user) for user in config.users]
 
-fixAppsFolderPerms("dev")
+devUser = users[0]
+
+fixAppsFolderPerms(devUser)
+
+setupJavaSymlinks(devUser)
 
 print("successfully completed")
 

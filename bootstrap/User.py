@@ -11,6 +11,7 @@ from typing import Union
 scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
 
+PathOrStr = Union[str,Path]
 
 class User(object):
 
@@ -24,7 +25,13 @@ class User(object):
         self.pw_gid = self.pwname.pw_gid
         self.authorizedKeys = authorizedKeys
 
-    def writeInHome(self, filename: str, contents: str) -> str:
+    def homePathStr(self, pathname: PathOrStr) -> str:
+        return os.path.join(self.home, pathname)
+
+    def homePath(self, pathname: PathOrStr) -> Path:
+        return Path(os.path.join(self.home, pathname))
+
+    def writeInHome(self, filename: PathOrStr, contents: str) -> str:
         absoluteFilename = os.path.join(self.home, filename)
         self.writeFile(absoluteFilename, contents)
         return absoluteFilename
@@ -46,7 +53,7 @@ class User(object):
             print("exec failed with exitcode " + str(completedProcess.returncode))
             sys.exit(1)
 
-    def pathExists(self, path: str) -> bool:
+    def pathExists(self, path: PathOrStr) -> bool:
         absolutePath = os.path.join(self.home, path)
         return os.path.exists(absolutePath)
 
@@ -60,6 +67,9 @@ class User(object):
     def deleteFile(self, filename):
         self.execShell(f"rm {filename}")
 
+    def chownPath(self, path: PathOrStr) -> None:
+        os.chown(path, self.pw_uid, self.pw_gid)
+
     def writeFile(self, filename: str, contents: str):
         parent = os.path.dirname(filename)
         self.makeDirectories(parent)
@@ -68,7 +78,8 @@ class User(object):
         out.close()
         os.chown(filename, self.pw_uid, self.pw_gid)
 
-    def makeDirectories(self, directory: str):
+    def makeDirectories(self, directory: PathOrStr):
+        directory = str(directory)
         if not os.path.exists(directory):
             self.execAsUser(["mkdir", "-p", directory])
 

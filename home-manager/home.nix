@@ -10,16 +10,16 @@ let
 
   a8-scripts = import sources.a8-scripts { inherit system nixpkgs; };
 
-  # runitor = 
-  #   pkgs.buildGoModule rec {
-  #     pname = "runitor";
-  #     version = "0.8.0";
-  #     vendorSha256 = null;
-  #     src = pkgs.fetchurl {
-  #       url = "https://github.com/bdd/runitor/archive/refs/tags/v0.8.0.tar.gz";
-  #       sha256 = "71489ba9b0103f16080495ea9671dd86638c338faf5cb0491f93f5d5128006c3";
-  #     };
-  #   };
+  runitor = 
+    nixpkgs.buildGoModule rec {
+      pname = "runitor";
+      version = "0.8.0";
+      vendorSha256 = null;
+      src = nixpkgs.fetchurl {
+        url = "https://github.com/bdd/runitor/archive/refs/tags/v0.8.0.tar.gz";
+        sha256 = "71489ba9b0103f16080495ea9671dd86638c338faf5cb0491f93f5d5128006c3";
+      };
+    };
 
 in
 {
@@ -76,7 +76,7 @@ in
     plugins = [
       {
         name = "bass";
-        src = pkgs.fetchFromGitHub {
+        src = nixpkgs.fetchFromGitHub {
           owner = "edc";
           repo = "bass";
           rev = "50eba266b0d8a952c7230fca1114cbc9fbbdfbd4";
@@ -86,7 +86,7 @@ in
 
       {
         name = "foreign-env";
-        src = pkgs.fetchFromGitHub {
+        src = nixpkgs.fetchFromGitHub {
           owner = "oh-my-fish";
           repo = "plugin-foreign-env";
           rev = "dddd9213272a0ab848d474d0cbde12ad034e65bc";
@@ -98,64 +98,61 @@ in
 
   home.packages = [
     a8-scripts.a8-scripts
+    # my-ammonite
+    # nixpkgs.activemq
+    nixpkgs.awscli
+    nixpkgs.bottom
+    nixpkgs.cached-nix-shell
+    nixpkgs.curl
+    # nixpkgs.diffoscope    
+    nixpkgs.direnv
+    nixpkgs.drone-cli
+    nixpkgs.exa  
+    nixpkgs.fish
+    nixpkgs.git
+    nixpkgs.git-crypt
+    nixpkgs.gnupg
+    # nixpkgs.haxe_4_0
     nixpkgs.htop
+    nixpkgs.httping
+    nixpkgs.iftop
     nixpkgs.jdk11
-    nixpkgs.fortune
-    # runitor
-
-#    my-ammonite
-#    pkgs.activemq
-    pkgs.awscli
-    pkgs.bottom
-    pkgs.curl
-#   pkgs.diffoscope    
-    pkgs.direnv
-    pkgs.drone-cli
-    pkgs.exa  
-    pkgs.fish
-    pkgs.git
-    pkgs.git-crypt
-    pkgs.gnupg
-#    pkgs.haxe_4_0
-    pkgs.htop
-    pkgs.httping
-    pkgs.iftop
-    # this classes with nettools
-    # pkgs.inetutils
-    pkgs.jq
-#    my-java
-    # pkgs.ipython
-    pkgs.lf
-    pkgs.micro
-    pkgs.mtr
-    pkgs.nano
-    pkgs.ncdu
-    pkgs.ncftp
-    pkgs.nettools
-    pkgs.niv
-    pkgs.nnn
-    pkgs.pgcli
-    pkgs.powerline-go
-    pkgs.pstree
+    # this clashes with nettools
+    # nixpkgs.inetutils
+    nixpkgs.jq
+    # my-java
+    # nixpkgs.ipython
+    nixpkgs.lf
+    nixpkgs.micro
+    nixpkgs.mtr
+    nixpkgs.mypy
+    nixpkgs.nano
+    nixpkgs.ncdu
+    nixpkgs.ncftp
+    nixpkgs.nettools
+    nixpkgs.niv
+    nixpkgs.nnn
+    nixpkgs.pgcli
+    nixpkgs.powerline-go
+    nixpkgs.pstree
     # my-python3
-    pkgs.ripgrep
-    pkgs.rsync
-    pkgs.s3cmd
-    pkgs.s4cmd
-    pkgs.mypy
+    nixpkgs.ripgrep
+    runitor
+    nixpkgs.rsync
+    nixpkgs.s3cmd
+    nixpkgs.s4cmd
     # my-scala
-#    my-sbt
-    pkgs.silver-searcher
-    pkgs.tea
-    pkgs.tmux
-    pkgs.websocat
-    pkgs.wget
-    pkgs.xz
-    pkgs.zsh
-#    my-scala
-#    pkgs.byobu
-    # pkgs.tcping
-    pkgs.cached-nix-shell
+    # my-sbt
+    nixpkgs.silver-searcher
+    nixpkgs.tea
+    nixpkgs.tmux
+    nixpkgs.websocat
+    nixpkgs.wget
+    nixpkgs.xz
+    nixpkgs.zsh
+    # my-scala
+    # nixpkgs.byobu
+    # nixpkgs.tcping
   ];
 
 }

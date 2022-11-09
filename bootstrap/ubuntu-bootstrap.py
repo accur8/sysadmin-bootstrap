@@ -122,15 +122,16 @@ def setupZerotier() -> None:
 def configureCaddy() -> None:
     if not root.pathExists("/etc/caddy/apps-setup-complete"):
         root.copyFile(scriptDir / "Caddyfile", "/etc/caddy/Caddyfile")
-        root.writeFile("/etc/caddy/apps-setup-complete", "do nothing / noop marker file to show that apps have been setup")
         root.makeDirectories("/etc/caddy/apps/")
         root.execAsUser(["systemctl", "enable", "--now", "caddy"])
+        root.writeFile("/etc/caddy/apps-setup-complete", "do nothing / noop marker file to show that apps have been setup")
 
 
 def configureSupervisor() -> None:
-    if not root.pathExists("/etc/supervisor/conf.d/apps.conf"):
-        root.copyFile(scriptDir / "supervisor-apps.conf", "/etc/supervisor/conf.d/apps.conf")
+    if not root.pathExists("/etc/supervisor/apps-setup-complete"):
+        root.copyFile(scriptDir / "supervisor.conf", "/etc/supervisor.conf")
         root.makeDirectories("/etc/supervisor/apps/")
+        root.writeFile("/etc/supervisor/apps-setup-complete", "do nothing / noop marker file to show that apps have been setup")
 
 
 
@@ -182,6 +183,16 @@ def createAndOrSetupUser(userConfig: UserConfig) -> User:
     user.generateAuthorizedKeys2()
     return user
 
+
+def fixAppsFolderPerms(userName):
+    """
+    fixes perms for the apps folders
+    needs to happen after the user is created
+    """
+    devUser = User(userName)
+    os.chown("/etc/caddy/apps", devUser.pw_uid, devUser.pw_gid)
+    os.chown("/etc/supervisor/apps", devUser.pw_uid, devUser.pw_gid)
+
 root = User("root")
 
 installEtcKeeper()
@@ -202,6 +213,8 @@ configureSupervisor()
 
 
 [createAndOrSetupUser(user) for user in config.users]
+
+fixAppsFolderPerms("dev")
 
 print("successfully completed")
 

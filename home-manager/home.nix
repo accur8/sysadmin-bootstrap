@@ -98,6 +98,7 @@ in
 
   home.packages = [
     a8-scripts.a8-scripts
+    nixpkgs.ammonite
     # my-ammonite
     # nixpkgs.activemq
     nixpkgs.awscli

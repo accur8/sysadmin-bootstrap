@@ -130,7 +130,7 @@ def configureCaddy() -> None:
 
 def configureSupervisor() -> None:
     if not root.pathExists("/etc/supervisor/apps-setup-complete"):
-        root.copyFile(scriptDir / "supervisor.conf", "/etc/supervisor.conf")
+        root.copyFile(scriptDir / "supervisord.conf", "/etc/supervisor/supervisord.conf")
         root.makeDirectories("/etc/supervisor/apps/")
         root.writeFile("/etc/supervisor/apps-setup-complete", "do nothing / noop marker file to show that apps have been setup")
 
@@ -201,7 +201,7 @@ def setupJavaSymlinks(devUser: User) -> None:
     else:
         def setupSymlink(path: Path) -> None:
             if not path.exists():
-                path.link_to(javaExecPath)
+                path.symlink_to(javaExecPath)
 
         setupSymlink(Path("/usr/bin/java"))
         setupSymlink(Path("/usr/bin/java11"))

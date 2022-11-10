@@ -109,8 +109,9 @@ class User(object):
         import shutil
         toParent = os.path.dirname(toFile)
         self.makeDirectories(toParent)
+        print(f"copying {fromFile} --> {toFile}")
         shutil.copyfile(fromFile, toFile)
-        os.chown(toFile, self.pw_uid, self.pw_gid)
+        self.chownPath(toFile)
 
 
     def generateAuthorizedKeys2(self) -> None:

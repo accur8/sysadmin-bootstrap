@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import stat
 from typing import Union
+import getpass
 
 scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
 gitRootDir = Path(os.path.dirname(scriptDir))
@@ -44,7 +45,7 @@ class User(object):
         if isinstance(args, str):
             args = [args]
 
-        if not self.username == os.getlogin():
+        if self.username != getpass.getuser():
             args = ["sudo", "-u", self.username] + args
 
         print(f"exec - " + str(args) + "  cwd=" + str(cwd))

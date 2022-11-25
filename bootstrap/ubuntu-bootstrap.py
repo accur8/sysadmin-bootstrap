@@ -18,6 +18,7 @@ class UserConfig:
     def __init__(self, **kwargs):
         self.login: str = kwargs["login"]
         self.authorizedKeys: list[str] = kwargs["authorizedKeys"]
+        self.sudoers: str = kwargs["sudoers"]
 
 class Config:
     def __init__(self, **kwargs):
@@ -35,7 +36,7 @@ class AptRepo:
         self.source = kwargs["source"]
 
 config = Config(
-    hostname = "orchid",
+    hostname = "tulip",
     zerotierNetworkId = "8056c2e21cb31b0c",
     repositores = [
         # {
@@ -47,6 +48,7 @@ config = Config(
     standalonePackages = [
         "caddy",
         "supervisor",
+        "rsync",
     ],
     rsnapshot = [
         "/etc/",
@@ -59,7 +61,13 @@ config = Config(
             authorizedKeys = [
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBjO1Y0Q3q8TTnupBWMEHp/G0yBZi0s6TvGvXepXFVt glen@fullfillment",
                 "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3+BOkj22pM1TjJJx3K0KpcARuXBMz1JGCsFoyS+bhJmNA6TK7HFSQ7yDdes/dEhZP7fFRrMcji/lzNmSNg3p8kDyyFyCmCYjti7yaMG/OFhen6w8FzueI4Bm79AudkR3s2Z+fmgC2MzttXWvUt5cYqmmExitZ1Uy8SbU9Ehal9vJScOmurhVSshhfPgQIqc8duRy91Vdj9eW9vt39wmb3E2pOWUJTsm1VfciNXU10A+rd4ChJg4Kvc9xvj9M5PS6mUYbv7AgmrLvaG3i1yP4LQbRdzHL39JRapc5dHjDxWaU49PJUt5nj4EBVE3tIej/D/gFYaXWbAKjT56HkS/1Z raph@raph",
-            ]
+            ],
+            sudoers = "dev ALL=(ALL) NOPASSWD: ALL"
+        ),
+        UserConfig(
+            login = "rsnapshot",
+            authorizedKeys = [],
+            sudoers = "%backup ALL=(ALL) NOPASSWD: /usr/bin/rsync"
         )
     ],
 )
@@ -140,7 +148,8 @@ def createSudoUser(userConfig: UserConfig) -> User:
     username = userConfig.login
     if not userExists(username):
         root.execAsUser(["adduser", "--disabled-password", "--gecos", "", username])
-    root.writeFile(f"/etc/sudoers.d/{username}", f"{username} ALL=(ALL) NOPASSWD: ALL")
+    if len(userConfig.sudoers) > 0:
+        root.writeFile(f"/etc/sudoers.d/{username}", f"{username} ALL=(ALL) NOPASSWD: ALL")
     return User(username, userConfig.authorizedKeys)
 
 def userExists(username: str) -> bool:

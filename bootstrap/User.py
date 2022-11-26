@@ -94,9 +94,15 @@ class User(object):
             self.deleteFile(installScript)
 
     def homeManagerSwitch(self):
-        self.installNix()
-        homeManagerDir = gitRootDir / "home-manager"
-        self.execAsUser(f"{homeManagerDir}/switch.sh", cwd=homeManagerDir)
+        configDir = os.path.join(self.home, ".config")
+        nixPkgsDir = os.path.join(configDir, "nixpkgs")
+        homeNix = os.path.join(nixPkgsDir, "home.nix")
+        if not os.path.exists(homeNix):
+            self.installNix()
+            homeManagerDir = gitRootDir / "home-manager"
+            self.makeDirectories(configDir)
+            self.execAsUser(["cp", "-R", str(homeManagerDir), nixPkgsDir])
+            self.execAsUser(f"{homeManagerDir}/switch.sh", cwd=homeManagerDir)
 
     def execShell(self, command, cwd=None):
         print("execShell - " + command)

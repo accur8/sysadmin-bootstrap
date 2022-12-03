@@ -15,12 +15,16 @@ Since this script makes changes to /usr/bin/ it must be run as root.
 from pathlib import Path
 import sys
 
+overwrite = False
 
+
+def logWarning(msg: str) -> None:
+    print("WARNING !! " + msg)
 
 def createSymlink(target: Path, link: Path) -> None:
     linkExists = link.exists()
     if not link.parent.exists():
-        link.parent.makedirs()
+        link.parent.mkdir(parents = True)
     if overwrite or not linkExists:
         if linkExists:
             link.unlink();
@@ -29,14 +33,12 @@ def createSymlink(target: Path, link: Path) -> None:
         else:
             print(f"creating symlink target={target}  link={link}")
             link.symlink_to(target)
-            return True
-    return False
 
 def run(overwrite0: bool) -> None:
 
     global overwrite
     overwrite = overwrite0
-    devHome = Path.expanduser("~dev")
+    devHome = Path("~dev").expanduser()
 
     javaExecPath = devHome.joinpath(".nix-profile/bin/java").resolve()
 

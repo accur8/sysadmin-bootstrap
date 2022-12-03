@@ -7,10 +7,13 @@ and then copies over the default nix / homemanager setup from /bootstrap/home-ma
 and then does a homemanager switch by running ~/.config/nixpkgs/switch.sh
 """
 
+
 import os
 import datetime
 from pathlib import Path
 import sys
+import subprocess
+import shutil
 
 def timestampstr() -> str:
     # '2022-12-03 09:25:21.561320' -> '20221203_092521_561320'
@@ -25,24 +28,25 @@ def timestampstr() -> str:
 
 def execShell(command: str) -> None:
     print(f"exec - {command}")
+    home = Path("~").expanduser()
+    subprocess.check_output(command, shell=True, cwd=home)
 
 
 def run() -> None:
-    config = Path(os.path.expanduser("~/.config"))
-    nixpkgsConfig = config / "nixpkgs"
 
+    bootstrapDir = Path(__file__).parent.parent
+
+    config = Path("~/.config").expanduser()
+    nixpkgsConfig = config / "nixpkgs"
 
     if nixpkgsConfig.exists():
         backup = config / f"nixpkgs-{timestampstr()}"
         print(f"backing up old home-manager setup to {backup}")
         execShell(f"mv {nixpkgsConfig} {backup}")
 
-
-    execShell(f"cp -r /bootstrap/home-manager {nixpkgsConfig}")
-
+    execShell(f"cp -r {bootstrapDir}/home-manager {nixpkgsConfig}")
     
     subprocess.check_output("./switch.sh", shell=True, cwd=nixpkgsConfig)
-
 
 
 def main() -> None:
@@ -69,3 +73,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+

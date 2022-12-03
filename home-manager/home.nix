@@ -99,7 +99,7 @@ in
       lx    = "exa --long --git --group --all --sort=.name";
       less  = "less -FSRXc";
       ll    = "ls -FGlAhp";
-      lsd   = "ls -FGlAhpd";
+      lsd   = "ls -FGlAhpd";  #for use with find like `lsd (find .)` 
       mkdir = "mkdir -pv";
       mv    = "mv -iv";
       xt    = "exa --long --git --group --tree";

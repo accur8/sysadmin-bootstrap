@@ -7,7 +7,6 @@ import sys
 from pathlib import Path
 import stat
 import pwd
-from pathlib import Path
 from User import User
 
 scriptDir = Path(os.path.dirname(os.path.realpath(__file__)))
@@ -18,7 +17,7 @@ class UserConfig:
     def __init__(self, **kwargs):
         self.login: str = kwargs["login"]
         self.authorizedKeys: list[str] = kwargs["authorizedKeys"]
-        self.sudoers: str = kwargs["sudoers"]
+        self.sudoers: [str] = kwargs.get("sudoers", [])
 
 class Config:
     def __init__(self, **kwargs):
@@ -26,59 +25,80 @@ class Config:
         self.zerotierNetworkId: str = kwargs["zerotierNetworkId"]
         self.repositores = [AptRepo(**repo) for repo in kwargs["repositores"]]
         self.standalonePackages: list[str] = kwargs["standalonePackages"]
-        self.rsnapshot: list[str] = kwargs["rsnapshot"]
         self.users: list[UserConfig] = kwargs["users"]
 
 class AptRepo:
     def __init__(self, **kwargs):
         self.name: str = kwargs["name"]
         self.file: str = kwargs["file"]
-        self.source = kwargs["source"]
+        self.source: [str] = kwargs.get("source", [])
+        self.shellCommands: [str] = kwargs.get("shellCommands", [])
+        self.packages: [str] = kwargs.get("packages", [])
 
-config = Config(
+deployerKeys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBjO1Y0Q3q8TTnupBWMEHp/G0yBZi0s6TvGvXepXFVt glen@fullfillment",
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3+BOkj22pM1TjJJx3K0KpcARuXBMz1JGCsFoyS+bhJmNA6TK7HFSQ7yDdes/dEhZP7fFRrMcji/lzNmSNg3p8kDyyFyCmCYjti7yaMG/OFhen6w8FzueI4Bm79AudkR3s2Z+fmgC2MzttXWvUt5cYqmmExitZ1Uy8SbU9Ehal9vJScOmurhVSshhfPgQIqc8duRy91Vdj9eW9vt39wmb3E2pOWUJTsm1VfciNXU10A+rd4ChJg4Kvc9xvj9M5PS6mUYbv7AgmrLvaG3i1yP4LQbRdzHL39JRapc5dHjDxWaU49PJUt5nj4EBVE3tIej/D/gFYaXWbAKjT56HkS/1Z raph@raph",
+]
+
+tulipConfig = Config(
     hostname = "tulip",
     zerotierNetworkId = "8056c2e21cb31b0c",
     repositores = [
-        # {
-        #     "name": "fish shell",
-        #     "file": "/etc/apt/sources.list.d/fish-shell-ubuntu-release-3-jammy.list",
-        #     "source": "ppa:fish-shell/release-3"
-        # }
+        {
+            "name": "fish shell",
+            "file": "/etc/apt/sources.list.d/fish-shell-ubuntu-release-3-jammy.list",
+            "source": ["ppa:fish-shell/release-3"]
+        },{
+            "name": "postgres",
+            "file": "/etc/apt/sources.list.d/pgdg.list",
+            "shellCommands": [
+                """wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -""",
+                """echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list""",
+            ]
+        },{
+            "name": "caddy1",
+            "packages": ["debian-keyring", "debian-archive-keyring", "apt-transport-https"],
+            "file": "/etc/apt/sources.list.d/caddy-stable.list",
+            "shellCommands": [
+                "curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor > /usr/share/keyrings/caddy-stable-archive-keyring.gpg",
+                "curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list"
+            ]
+        }
     ],
     standalonePackages = [
         "caddy",
         "supervisor",
         "rsync",
-    ],
-    rsnapshot = [
-        "/etc/",
-        "/home/",
-        "/root/",
+        "postgresql-13",
+        "postgresql-client-13",
+        "pgbackrest",
+        "fish",
     ],
     users = [
         UserConfig(
             login = "dev",
-            authorizedKeys = [
-                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBjO1Y0Q3q8TTnupBWMEHp/G0yBZi0s6TvGvXepXFVt glen@fullfillment",
-                "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3+BOkj22pM1TjJJx3K0KpcARuXBMz1JGCsFoyS+bhJmNA6TK7HFSQ7yDdes/dEhZP7fFRrMcji/lzNmSNg3p8kDyyFyCmCYjti7yaMG/OFhen6w8FzueI4Bm79AudkR3s2Z+fmgC2MzttXWvUt5cYqmmExitZ1Uy8SbU9Ehal9vJScOmurhVSshhfPgQIqc8duRy91Vdj9eW9vt39wmb3E2pOWUJTsm1VfciNXU10A+rd4ChJg4Kvc9xvj9M5PS6mUYbv7AgmrLvaG3i1yP4LQbRdzHL39JRapc5dHjDxWaU49PJUt5nj4EBVE3tIej/D/gFYaXWbAKjT56HkS/1Z raph@raph",
-            ],
+            authorizedKeys = deployerKeys,
             sudoers = "dev ALL=(ALL) NOPASSWD: ALL"
         ),
         UserConfig(
-            login = "rsnapshot",
-            authorizedKeys = [],
-            sudoers = "%backup ALL=(ALL) NOPASSWD: /usr/bin/rsync"
+            login = "postgres",
+            authorizedKeys = deployerKeys,
         )
+
     ],
 )
+
+config = tulipConfig
 
 
 aptUpdateNeeded = False
 
 def setupRepos() -> None:
     for repo in config.repositores:
+        installPackages(repo.packages)
         if not os.path.exists(repo.file):
-            root.execAsUser(["apt-add-repository", "-y", repo.source])
+            [root.execAsUser(["apt-add-repository", "-y", source]) for source in repo.source]
+            [root.execShell(shellCommand) for shellCommand in repo.shellCommands]
             aptUpdateNeeded = True
         else:
             print(f"repo {repo.name} already setup")    
@@ -100,24 +120,15 @@ def aptUpdate() -> None:
         aptUpdateNeeded = False
 
 
-def installPackages(*packages: str) -> None:
-    if not arePackagesInstalled(*packages):
+def installPackages(packages: [str]) -> None:
+    if len(packages) == 0:
+        pass
+    elif not arePackagesInstalled(*packages):
         packagesL = list(packages)
         print("installing packages -- " + str(packagesL))
         root.execAsUser(["apt", "install", "-y"] + packagesL)
     else:
         print("packages already installed -- " + str(list(packages)))
-
-
-
-def setupCaddyRepo() -> None:
-    global aptUpdateNeeded
-    installPackages("debian-keyring", "debian-archive-keyring", "apt-transport-https")
-    if not os.path.exists("/usr/share/keyrings/caddy-stable-archive-keyring.gpg"):
-        root.execShell("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor > /usr/share/keyrings/caddy-stable-archive-keyring.gpg")
-    if not os.path.exists("/etc/apt/sources.list.d/caddy-stable.list"):        
-        root.execShell("curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list")
-        aptUpdateNeeded = True
 
 
 def setupZerotier() -> None:
@@ -183,14 +194,12 @@ def installEtcKeeper() -> None:
     if not arePackagesInstalled("etckeeper"):
         aptUpdateNeeded = True
         aptUpdate()
-        installPackages("etckeeper")
+        installPackages(["etckeeper"])
 
 
-def createAndOrSetupUser(userConfig: UserConfig) -> User:
+def createUser(userConfig: UserConfig) -> User:
     print(f"createAndOrSetupUser({userConfig.login})")
     user = createSudoUser(userConfig)
-    user.homeManagerSwitch()
-    user.generateAuthorizedKeys2()
     return user
 
 
@@ -203,23 +212,27 @@ def fixAppsFolderPerms(devUser: User) -> None:
     os.chown("/etc/supervisor/apps", devUser.pw_uid, devUser.pw_gid)
 
 
-def setupJavaSymlinks(devUser: User) -> None:
+def createSymlink(target: Path, link: Path) -> bool:
+    if not link.parent.exists():
+        root.makeDirectories(link.parent)
+    if not link.exists():
+        if not target.exists():
+            logWarning(f"target path does not exist @ {target}")
+        else:
+            print(f"creating symlink target={target}  link={link}")
+            link.symlink_to(target)
+            return True
+    return False
+
+def setupSystemSymlinks(devUser: User) -> None:
+
     javaExecPath = devUser.homePath(".nix-profile/bin/java").resolve()
-    if not javaExecPath.exists():
-        logWarning(f"no java exec found @ {javaExecPath}")
-    else:
-        def setupSymlink(path: Path) -> None:
-            if not path.exists():
-                path.symlink_to(javaExecPath)
 
-        setupSymlink(Path("/usr/bin/java"))
-        setupSymlink(Path("/usr/bin/java11"))
-
-        devUser.makeDirectories(devUser.homePath("apps/bin"))
-        appsBinJava = devUser.homePath("apps/bin/java11")
-        if not appsBinJava.exists():
-            setupSymlink(appsBinJava)
-            devUser.chownPath(appsBinJava)
+    createSymlink(javaExecPath, Path("/usr/bin/java11"))
+    createSymlink(javaExecPath, Path("/usr/bin/java"))
+    createSymlink(devUser.homePath(".nix-profile/bin/coursier").resolve(), Path("/usr/bin/coursier"))
+    createSymlink(devUser.homePath(".nix-profile/bin/a8-versions").resolve(), Path("/usr/bin/a8-versions"))
+    createSymlink(javaExecPath, devUser.homePath("apps/bin/java11"))
 
 
 def logWarning(msg: str) -> None:
@@ -232,11 +245,10 @@ installEtcKeeper()
 setHostname(config.hostname)
 
 setupRepos()
-setupCaddyRepo()
 
 aptUpdate()
 
-installPackages(*config.standalonePackages)
+installPackages(config.standalonePackages)
 
 setupZerotier()
 
@@ -245,19 +257,19 @@ configureSupervisor()
 
 
 
-users = [createAndOrSetupUser(user) for user in config.users]
+users = [createUser(user) for user in config.users]
 
 devUser = users[0]
+devUser.installNix()
+
+[user.standardConfig() for user in users]
 
 fixAppsFolderPerms(devUser)
 
-setupJavaSymlinks(devUser)
+setupSystemSymlinks(devUser)
 
 print("successfully completed")
 
 
-# setup for use as a server_sync_apps
-
-# setup for rsnapshot (add rsnapshot keys for ssh into root)
 
 

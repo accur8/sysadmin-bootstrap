@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+
+
+docs = """
+for the current user this script backs up any existing files in ~/.config/nixpkgs into ~/.config/nixpkgs-{timesamp}
+and then copies over the default nix / homemanager setup from /bootstrap/home-manager/ into ~/.config/nixpkgs
+and then does a homemanager switch by running ~/.config/nixpkgs/switch.sh
+"""
+
+import os
+import datetime
+from pathlib import Path
+import sys
+
+def timestampstr() -> str:
+    # '2022-12-03 09:25:21.561320' -> '20221203_092521_561320'
+    return (
+        str(datetime.datetime.now())
+            .replace("-","")
+            .replace(" ","_")
+            .replace(":","")
+            .replace(".","_")
+    )
+
+
+def execShell(command: str) -> None:
+    print(f"exec - {command}")
+
+
+def run() -> None:
+    config = Path(os.path.expanduser("~/.config"))
+    nixpkgsConfig = config / "nixpkgs"
+
+
+    if nixpkgsConfig.exists():
+        backup = config / f"nixpkgs-{timestampstr()}"
+        print(f"backing up old home-manager setup to {backup}")
+        execShell(f"mv {nixpkgsConfig} {backup}")
+
+
+    execShell(f"cp -r /bootstrap/home-manager {nixpkgsConfig}")
+
+    
+    subprocess.check_output("./switch.sh", shell=True, cwd=nixpkgsConfig)
+
+
+
+def main() -> None:
+
+    import argparse
+    parser = argparse.ArgumentParser(
+        prog = 'reset-home-manager',
+        description = docs,
+    )
+    # parser.add_argument("--run", help="do the actual thing", action='store_true')
+    subparsers = parser.add_subparsers(dest="command", help='sub-commands')
+    subparsers.add_parser("run", help='do the actual work and change the system')
+    subparsers.add_parser("help", help='print this help')
+    args = parser.parse_args()
+    if args.command == "run":
+        run()
+    elif args.command == "help":
+        parser.print_help()
+    else:
+        badargs = " ".join(sys.argv[1:])
+        print(f"don't know how to handle command of {args.command} in {badargs}")
+        parser.print_help()
+
+
+if __name__ == '__main__':
+    main()

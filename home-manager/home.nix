@@ -94,7 +94,20 @@ in
         };
       }
     ];
+    shellAliases = {
+      cp    = "cp -iv";
+      lx    = "exa --long --git --group --all --sort=.name";
+      less  = "less -FSRXc";
+      ll    = "ls -FGlAhp";
+      lsd   = "ls -FGlAhpd";
+      mkdir = "mkdir -pv";
+      mv    = "mv -iv";
+      xt    = "exa --long --git --group --tree";
+      xl    = "exa --long --git --group --all --sort=.name --sort=type";
+      which = "which -a";
+    };
   };
+
 
   home.packages = [
     a8-scripts.a8-scripts
@@ -136,6 +149,7 @@ in
     nixpkgs.pgcli
     nixpkgs.powerline-go
     nixpkgs.pstree
+    nixpkgs.pv
     # my-python3
     nixpkgs.ripgrep
     runitor

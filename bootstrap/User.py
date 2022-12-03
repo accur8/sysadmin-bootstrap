@@ -93,22 +93,26 @@ class User(object):
             self.execShell(f"nohup sh {installScript} --daemon | cat")
             self.deleteFile(installScript)
 
+    def standardConfig(self):
+        self.homeManagerSwitch()
+        self.writeAuthorizedKeys()
+
     def homeManagerSwitch(self):
         configDir = os.path.join(self.home, ".config")
         nixPkgsDir = os.path.join(configDir, "nixpkgs")
         homeNix = os.path.join(nixPkgsDir, "home.nix")
         if not os.path.exists(homeNix):
-            self.installNix()
             homeManagerDir = gitRootDir / "home-manager"
             self.makeDirectories(configDir)
             self.execAsUser(["cp", "-R", str(homeManagerDir), nixPkgsDir])
             self.execAsUser(f"{homeManagerDir}/switch.sh", cwd=homeManagerDir)
 
     def execShell(self, command, cwd=None):
-        print("execShell - " + command)
 
-        if not self.username == os.getlogin():
+        if not self.username == getpass.getuser():
             command = f"sudo -u {self.username} {command}"
+
+        print("execShell - " + command)
 
         subprocess.check_output(command, shell=True, cwd=cwd)
 
@@ -121,9 +125,9 @@ class User(object):
         self.chownPath(toFile)
 
 
-    def generateAuthorizedKeys2(self) -> None:
+    def writeAuthorizedKeys(self) -> None:
         authorizedKeys2Contents = "\n".join([key for key in self.authorizedKeys])
-        filename = self.writeInHome(".ssh/authorized_keys2", authorizedKeys2Contents)
+        filename = self.writeInHome(".ssh/authorized_keys", authorizedKeys2Contents)
         os.chmod(filename, stat.S_IRUSR | stat.S_IWUSR)
         sshDir = os.path.dirname(filename)
         os.chmod(sshDir, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)

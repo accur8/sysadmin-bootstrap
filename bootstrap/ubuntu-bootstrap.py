@@ -230,6 +230,7 @@ def setupSystemSymlinks(devUser: User) -> None:
 
     createSymlink(javaExecPath, Path("/usr/bin/java11"))
     createSymlink(javaExecPath, Path("/usr/bin/java"))
+    createSymlink(devUser.homePath(".nix-profile/bin/runitor").resolve(), Path("/usr/bin/runitor"))
     createSymlink(devUser.homePath(".nix-profile/bin/coursier").resolve(), Path("/usr/bin/coursier"))
     createSymlink(devUser.homePath(".nix-profile/bin/a8-versions").resolve(), Path("/usr/bin/a8-versions"))
     createSymlink(javaExecPath, devUser.homePath("apps/bin/java11"))

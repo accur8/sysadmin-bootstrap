@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+
+
+import os
+import datetime
+from pathlib import Path
+import sys
+import subprocess
+import shutil
+
+
+
+# detect if we are sunday (full backup) or another day (diff)
+
+rsnapshot_config_file = Path(sys.argv[1])
+stanza = sys.argv[2]
+slug = f"rsnapshot-{stanza}"
+
+
+# 0 3  * * * /usr/bin/runitor -ping-key=OFiEz-9YcI3gX07IeFpLJQ -slug=superbee-rsnapshot -- /usr/bin/rsnapshot -c /root/backups/rsnapshot-superbee.conf daily
+# 0 4  * * * /usr/bin/runitor -ping-key=OFiEz-9YcI3gX07IeFpLJQ -slug=connectria-rsnapshot -- /usr/bin/rsnapshot -c /root/backups/rsnapshot-connectria.conf daily
+
+command = f"/usr/bin/runitor -ping-key=OFiEz-9YcI3gX07IeFpLJQ -slug={slug} -- /usr/bin/rsnapshot -c {rsnapshot_config_file} daily"
+
+
+print(f"running -- {command}")
+
+subprocess.check_output(
+    command,
+    cwd = rsnapshot_config_file.parent,
+)

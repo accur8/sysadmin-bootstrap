@@ -5,7 +5,7 @@ docs = """
 this script sets up symlinks in /usr/bin for the various tools that we install via nix but
 are needed system wide outside of users.
 
-currently the links java coursier a8versions
+currently the links java coursier a8versions runitor
 also a java11 link is made that points to java
 
 Since this script makes changes to /usr/bin/ it must be run as root.
@@ -46,6 +46,7 @@ def run(overwrite0: bool) -> None:
     createSymlink(javaExecPath, Path("/usr/bin/java"))
     createSymlink(devHome.joinpath(".nix-profile/bin/coursier").resolve(), Path("/usr/bin/coursier"))
     createSymlink(devHome.joinpath(".nix-profile/bin/a8-versions").resolve(), Path("/usr/bin/a8-versions"))
+    createSymlink(devHome.joinpath(".nix-profile/bin/runitor").resolve(), Path("/usr/bin/runitor"))
 
 def run_test(overwrite0: bool) -> None:
     global overwrite

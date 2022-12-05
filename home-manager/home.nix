@@ -153,6 +153,7 @@ in
     # my-python3
     nixpkgs.ripgrep
     runitor
+    nixpkgs.rsnapshot
     nixpkgs.rsync
     nixpkgs.s3cmd
     nixpkgs.s4cmd

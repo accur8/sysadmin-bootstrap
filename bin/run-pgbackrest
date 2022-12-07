@@ -9,18 +9,19 @@ from pathlib import Path
 import sys
 import subprocess
 import shutil
-
+from typing import Optional
 
 
 # detect if we are sunday (full backup) or another day (diff)
 
-stanza = sys.argv[1]
-slug = f"pgbackrest-{stanza}"
+stanza_name = sys.argv[1]
+server_name = sys.argv[2]
+slug = f"pgbackrest-{server_name}"
 
 
-last_fullbackup_file = Path(f"~/.cache/rsnapshot-runs/last-fullbackup-{stanza}").expanduser()
+last_fullbackup_file = Path(f"~/.cache/rsnapshot-runs/last-fullbackup-{stanza_name}").expanduser()
 
-last_fullbackup: datetime.datetime | None = None
+last_fullbackup: Optional[datetime.datetime] = None
 
 if last_fullbackup_file.exists():
     try:
@@ -45,11 +46,22 @@ else:
 print(f"last full backup is {last_fullbackup}")
 print(f"backup type {backup_type}")
 
-command = f"/usr/bin/runitor -ping-key=OFiEz-9YcI3gX07IeFpLJQ -slug={slug} -- pgbackrest --type={backup_type} --stanza={stanza} backup --repo=1"
+command = [
+    "/usr/bin/runitor",
+    "-ping-key=OFiEz-9YcI3gX07IeFpLJQ",
+    f"-slug={slug}",
+    "--",
+    "pgbackrest",
+    f"--type={backup_type}",
+    f"--stanza={stanza_name}",
+    "backup",
+    "--repo=1",
+]
 
-print(f"running -- {command}")
+commandStr = " ".join(command)
+print(f"running -- {commandStr}")
 
-subprocess.check_output(command)
+subprocess.run(command)
 
 # 30 22  *   *   0     /usr/bin/runitor -ping-key=OFiEz-9YcI3gX07IeFpLJQ -slug=getty-db-backup -- pgbackrest --type=full --stanza=getty backup --repo=1
 # 30 22  *   *   1-6   /usr/bin/runitor -ping-key=OFiEz-9YcI3gX07IeFpLJQ -slug=getty-db-backup -- pgbackrest --type=diff --stanza=getty backup --repo=1

@@ -33,6 +33,8 @@ def createSymlink(target: Path, link: Path) -> None:
         else:
             print(f"creating symlink target={target}  link={link}")
             link.symlink_to(target)
+    else:
+        print(f"leaving {link} in place")
 
 def run(overwrite0: bool) -> None:
 
@@ -47,6 +49,7 @@ def run(overwrite0: bool) -> None:
     createSymlink(devHome.joinpath(".nix-profile/bin/coursier").resolve(), Path("/usr/bin/coursier"))
     createSymlink(devHome.joinpath(".nix-profile/bin/a8-versions").resolve(), Path("/usr/bin/a8-versions"))
     createSymlink(devHome.joinpath(".nix-profile/bin/runitor").resolve(), Path("/usr/bin/runitor"))
+    createSymlink(devHome.joinpath(".nix-profile/bin/pgbackrest").resolve(), Path("/usr/bin/pgbackrest"))
 
 def run_test(overwrite0: bool) -> None:
     global overwrite

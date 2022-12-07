@@ -13,11 +13,11 @@ let
   runitor = 
     nixpkgs.buildGoModule rec {
       pname = "runitor";
-      version = "0.8.0";
+      version = "1.2.0";
       vendorSha256 = null;
       src = nixpkgs.fetchurl {
-        url = "https://github.com/bdd/runitor/archive/refs/tags/v0.8.0.tar.gz";
-        sha256 = "71489ba9b0103f16080495ea9671dd86638c338faf5cb0491f93f5d5128006c3";
+        url = "https://github.com/bdd/runitor/archive/refs/tags/v1.2.0.tar.gz";
+        sha256 = "03a2ayxrfdjbq7mcw87cqg470gg7bbwb34cij0wrbr4vafadkf4h";
       };
     };
 
@@ -137,6 +137,7 @@ in
     # my-java
     # nixpkgs.ipython
     nixpkgs.lf
+    nixpkgs.mc
     nixpkgs.micro
     nixpkgs.mtr
     nixpkgs.mypy
@@ -146,6 +147,7 @@ in
     nixpkgs.nettools
     nixpkgs.niv
     nixpkgs.nnn
+    nixpkgs.pgbackrest
     nixpkgs.pgcli
     nixpkgs.powerline-go
     nixpkgs.pstree

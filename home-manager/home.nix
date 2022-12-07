@@ -166,6 +166,7 @@ in
     nixpkgs.tmux
     nixpkgs.websocat
     nixpkgs.wget
+    nixpkgs.wkhtmltopdf
     nixpkgs.xz
     nixpkgs.zsh
     # my-scala

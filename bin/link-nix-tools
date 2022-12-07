@@ -1,19 +1,31 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+import sys
+from typing import Optional
 
-docs = """
+tools_to_link: [str] = [
+    "a8-versions",
+    "java",
+    "pgbackrest",
+    "runitor",
+    "wkhtmltopdf",
+]
+
+
+tools_to_link_str = " ".join(tools_to_link)
+
+docs = f"""
 this script sets up symlinks in /usr/bin for the various tools that we install via nix but
 are needed system wide outside of users.
 
-currently the links java coursier a8versions runitor
+currently the following are linked {tools_to_link_str}
 also a java11 link is made that points to java
 
 Since this script makes changes to /usr/bin/ it must be run as root.
 
 """
 
-from pathlib import Path
-import sys
 
 overwrite = False
 
@@ -22,11 +34,11 @@ def logWarning(msg: str) -> None:
     print("WARNING !! " + msg)
 
 def createSymlink(target: Path, link: Path) -> None:
-    linkExists = link.exists()
+    link_exists = link.exists()
     if not link.parent.exists():
         link.parent.mkdir(parents = True)
-    if overwrite or not linkExists:
-        if linkExists:
+    if overwrite or not link_exists:
+        if link_exists:
             link.unlink();
         if not target.exists():
             logWarning(f"target path does not exist @ {target}")
@@ -36,20 +48,22 @@ def createSymlink(target: Path, link: Path) -> None:
     else:
         print(f"leaving {link} in place")
 
+def linkNixTool(name: str, target_name: Optional[str] = None) -> None:
+    if not target_name:
+        target_name = name
+    dev_home = Path("~dev").expanduser()
+    createSymlink(dev_home.joinpath(f".nix-profile/bin/{name}").resolve(), Path(f"/usr/bin/{target_name}"))
+
 def run(overwrite0: bool) -> None:
 
     global overwrite
     overwrite = overwrite0
-    devHome = Path("~dev").expanduser()
 
-    javaExecPath = devHome.joinpath(".nix-profile/bin/java").resolve()
+    for tool in tools_to_link:
+        linkNixTool(tool)
 
-    createSymlink(javaExecPath, Path("/usr/bin/java11"))
-    createSymlink(javaExecPath, Path("/usr/bin/java"))
-    createSymlink(devHome.joinpath(".nix-profile/bin/coursier").resolve(), Path("/usr/bin/coursier"))
-    createSymlink(devHome.joinpath(".nix-profile/bin/a8-versions").resolve(), Path("/usr/bin/a8-versions"))
-    createSymlink(devHome.joinpath(".nix-profile/bin/runitor").resolve(), Path("/usr/bin/runitor"))
-    createSymlink(devHome.joinpath(".nix-profile/bin/pgbackrest").resolve(), Path("/usr/bin/pgbackrest"))
+    linkNixTool("java", "java11")
+
 
 def run_test(overwrite0: bool) -> None:
     global overwrite

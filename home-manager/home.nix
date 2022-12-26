@@ -6,7 +6,7 @@ let
 
   sources = import ./nix/sources.nix;
 
-  nixpkgs = import sources.nixpkgs-unstable { inherit system; };
+  nixpkgs = import sources.nixpkgs-stable-22.11 { inherit system; };
 
   a8-scripts = import sources.a8-scripts { inherit system nixpkgs; };
 
@@ -166,7 +166,7 @@ in
     nixpkgs.tmux
     nixpkgs.websocat
     nixpkgs.wget
-    nixpkgs.wkhtmltopdf
+    # nixpkgs.wkhtmltopdf
     nixpkgs.xz
     nixpkgs.zsh
     # my-scala

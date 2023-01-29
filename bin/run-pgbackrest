@@ -34,7 +34,7 @@ else:
 
 
 if last_fullbackup:
-    days = round((datetime.datetime.now() - last_fullbackup).seconds / (3600 * 60 * 24), 2)
+    days = (datetime.datetime.now() - last_fullbackup).days
     print(f"days since last full backup is {days} days ago")
     if days > 6.5:
         backup_type = "full"

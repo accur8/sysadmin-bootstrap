@@ -94,18 +94,9 @@ class User(object):
             self.deleteFile(installScript)
 
     def standardConfig(self):
-        self.homeManagerSwitch()
         self.writeAuthorizedKeys()
-
-    def homeManagerSwitch(self):
-        configDir = os.path.join(self.home, ".config")
-        nixPkgsDir = os.path.join(configDir, "nixpkgs")
-        homeNix = os.path.join(nixPkgsDir, "home.nix")
-        if not os.path.exists(homeNix):
-            homeManagerDir = gitRootDir / "home-manager"
-            self.makeDirectories(configDir)
-            self.execAsUser(["cp", "-R", str(homeManagerDir), nixPkgsDir])
-            self.execAsUser(f"{homeManagerDir}/switch.sh", cwd=homeManagerDir)
+        self.execShell("nix-env -iA nixpkgs.chezmoi")
+        self.execShell("chezmoi init --apply https://github.com/fizzy33/dotfiles.git")
 
     def execShell(self, command, cwd=None):
 

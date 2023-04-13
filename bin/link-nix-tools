@@ -6,17 +6,19 @@ from typing import Optional
 
 tools_to_link: [str] = [
     "a8-versions",
+    "chezmoi",
     "java",
+    "nix",
+    "nix-build",
     "pgbackrest",
     "runitor",
     "wkhtmltopdf",
 ]
 
-
 tools_to_link_str = " ".join(tools_to_link)
 
 docs = f"""
-this script sets up symlinks in /usr/bin for the various tools that we install via nix but
+this script sets up symlinks in /usr/local/bin for the various tools that we install via nix but
 are needed system wide outside of users.
 
 currently the following are linked {tools_to_link_str}

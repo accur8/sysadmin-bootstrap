@@ -237,6 +237,7 @@ def setupSystemSymlinks(devUser: User) -> None:
     createSymlink(devUser.homePath(".nix-profile/bin/a8-versions").resolve(), Path("/usr/local/bin/a8-versions"))
 
 
+
 def logWarning(msg: str) -> None:
     print("WARNING !! " + msg)
 
